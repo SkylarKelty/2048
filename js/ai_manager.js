@@ -12,9 +12,6 @@ AIManager.prototype.reset = function () {
 		window.clearTimeout(this.ticker);
 		this.ticker = 0;
 	}
-
-	// Reset the weights.
-	this.mixWeights();
 }
 
 // Randomise weights.
@@ -26,6 +23,61 @@ AIManager.prototype.mixWeights = function () {
 		"a1": a1weight,
 		"a2": 1 - a1weight
 	}
+}
+
+// Serialize weights.
+AIManager.prototype.serialize = function () {
+	var self = this;
+	return JSON.stringify({
+		"count": 1,
+		"lookahead": self.lookahead,
+		"weights": self.weights,
+		"score": self.world.score
+	});
+}
+
+// Learn from the last game.
+AIManager.prototype.learn = function () {
+	var self = this;
+	var storage = this.world.storageManager;
+
+	var brain = storage.get('aibrain');
+	if (brain) {
+		brain = JSON.parse(brain);
+	} else {
+		brain = [];
+	}
+
+	// Right, first we want to see what the score was
+	// the last time we used these weights.
+	var found = false;
+	var game = self.serialize();
+	for (var i = 0; i < brain.length; i++) {
+		game = brain[i];
+		if (game && game.lookahead == self.lookahead && game.weights.a1 == self.weights.a1
+			&& game.weights.a2 == self.weights.a2) {
+			// Game matches values for this round, re-score this one.
+			game.score = (game.score + self.world.score) / game.count;
+			game.count++;
+			found = true;
+			brain[i] = game;
+			break;
+		}
+	}
+
+	// Add to brain if we didnt find it.
+	if (!found) {
+		brain.append(game);
+	}
+
+	// If we have tried these weights more than 10 times,
+	// produce a random variation.
+	if (game.count >= 10) {
+		self.mixWeights();
+	}
+
+	// Save the brain.
+	storage.set('aibrain', JSON.stringify(brain));
 }
 
 // Clones a grid's tiles into a simple cell array.
@@ -187,7 +239,6 @@ AIManager.prototype.getMove = function (grid, lookahead) {
 
 // Called every 1 second after the game has begun.
 AIManager.prototype.tick = function () {
-	console.log("TICK");
 	var self = this;
 
 	// Get the highest scoring move.
@@ -211,17 +262,17 @@ AIManager.prototype.tick = function () {
 
 // Called when the game has begun.
 AIManager.prototype.onStart = function () {
-	console.log("START");
 	this.reset();
 	this.tick();
 }
 
-// Learns after each game.
+// Called when the game has ended.
 AIManager.prototype.onEnd = function (manager) {
-	console.log("END");
+	this.world = manager;
+
+	this.learn();
 	this.reset();
 
-	this.world = manager;
 	window.setTimeout(function() {
 		manager.restart();
 	}, 1000);
