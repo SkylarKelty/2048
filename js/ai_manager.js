@@ -190,9 +190,9 @@ AIManager.prototype.getMove = function (grid, lookahead) {
 
 	var algorithm = Math.random();
 
-	// Algorithm 1 - returns the move that will merge the
-	// highest two tiles.
 	if (algorithm < this.weights.a1) {
+		// Algorithm 1 - returns the move that will merge the
+		// highest two tiles.
 		for (var x = 0; x < world.size; x++) {
 			for (var y = 0; y < world.size; y++) {
 				var tile = grid.cellContent({ x: x, y: y });
@@ -214,18 +214,18 @@ AIManager.prototype.getMove = function (grid, lookahead) {
 				}
 			}
 		}
-	}
+	} else {
+		// Algorithm 2 - returns the move that will produce
+		// the highest scoring world.
+		if (algorithm >= this.weights.a2) {
+			for (var direction = 0; direction < 4; direction++) {
+				if (possibles[direction]) {
+					var possible = this.scoreMove(world.grid, direction);
 
-	// Algorithm 2 - returns the move that will produce
-	// the highest scoring world.
-	if (algorithm >= this.weights.a2) {
-		for (var direction = 0; direction < 4; direction++) {
-			if (possibles[direction]) {
-				var possible = this.scoreMove(world.grid, direction);
-
-				if (possible >= score) {
-					score = possible;
-					dir = direction;
+					if (possible >= score) {
+						score = possible;
+						dir = direction;
+					}
 				}
 			}
 		}
