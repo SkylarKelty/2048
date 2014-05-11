@@ -34,7 +34,8 @@ AIManager.prototype.serialize = function () {
 		"count": 1,
 		"lookahead": self.lookahead,
 		"weights": self.weights,
-		"score": score
+		"score": score,
+		"bestScore": score
 	});
 }
 
@@ -60,6 +61,9 @@ AIManager.prototype.learn = function () {
 			&& game.weights.a2 == self.weights.a2) {
 			// Game matches values for this round, re-score this one.
 			game.score = (game.score + self.world.score) / game.count;
+			if (!game.bestScore || self.world.score > game.bestScore) {
+				game.bestScore = self.world.score;
+			}
 			game.count++;
 			found = true;
 			brain[i] = game;
