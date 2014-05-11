@@ -40,15 +40,17 @@ AIManager.prototype.scoreMove = function (grid, direction) {
 // affect the grid.
 AIManager.prototype.lookAhead = function (grid, direction) {
 	var world = this.performMove(grid, direction);
-	var move = this.getMove(world.grid);
-	return move.score;
+	var move = this.getMove(world.grid, 0);
+	return {
+		"grid": world.grid,
+		"score": move.score
+	};
 }
 
 // Gets any direction we can move.
-AIManager.prototype.getPossibleMoves = function () {
+AIManager.prototype.getPossibleMoves = function (grid) {
 	var self = this;
 	var world = this.world;
-	var grid = this.world.grid;
 	var moves = [0, 0, 0, 0];
 
 	for (var x = 0; x < grid.size; x++) {
@@ -72,8 +74,8 @@ AIManager.prototype.getPossibleMoves = function () {
 }
 
 // Gets any possible move.
-AIManager.prototype.getDefaultMove = function () {
-	var moves = this.getPossibleMoves();console.log(moves);
+AIManager.prototype.getDefaultMove = function (grid) {
+	var moves = this.getPossibleMoves(grid);
 	for (var direction = 0; direction < 4; direction++) {
 		if (moves[direction]) {
 			return direction;
@@ -83,11 +85,14 @@ AIManager.prototype.getDefaultMove = function () {
 }
 
 // Gets the best possible move.
-AIManager.prototype.getMove = function (grid) {
+AIManager.prototype.getMove = function (grid, lookahead) {
+	var self = this;
 	var world = this.world;
 
 	var score = 0;
-	var dir = this.getDefaultMove();
+	var dir = this.getDefaultMove(grid);
+
+	var possibles = this.getPossibleMoves(grid);
 
 	// Algorithm 1 - returns the move that will merge the
 	// highest two tiles.
@@ -117,14 +122,29 @@ AIManager.prototype.getMove = function (grid) {
 
 	// Algorithm 2 - returns the move that will produce
 	// the highest scoring world.
-	var possibles = this.getPossibleMoves();
 	for (var direction = 0; direction < 4; direction++) {
 		if (possibles[direction]) {
 			var possible = this.scoreMove(world.grid, direction);
-			console.log(direction + " " + possible + " " + score);
+
 			if (possible >= score) {
 				score = possible;
 				dir = direction;
+			}
+		}
+	}
+
+	// Algorithm 3 - returns the move that will produce
+	// the highest scoring round after the next {lookahead}
+	// rounds.
+	if (lookahead > 0) {
+		var nextScore = score;
+		for (var direction = 0; direction < 4; direction++) {
+			if (possibles[direction]) {
+				var lookaheadMove = self.lookAhead(grid, direction);
+				if (lookaheadMove.score > nextScore) {
+					dir = direction;
+					nextScore = lookaheadMove.score;
+				}
 			}
 		}
 	}
@@ -140,7 +160,7 @@ AIManager.prototype.tick = function () {
 	var self = this;
 
 	// Get the highest scoring move.
-	var move = this.getMove(this.world.grid);
+	var move = this.getMove(this.world.grid, 1);
 	var direction = move.direction;
 
 	// Perform the move or end the game.
