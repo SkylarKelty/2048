@@ -2,12 +2,38 @@ function AIManager(GameManager) {
 	this.world = GameManager;
 }
 
+// Gets any possible move.
+AIManager.prototype.getDefaultMove = function () {
+	var self = this;
+	var world = this.world;
+	var grid = this.world.grid;
+
+	for (var x = 0; x < grid.size; x++) {
+		for (var y = 0; y < grid.size; y++) {
+			var tile = grid.cellContent({ x: x, y: y });
+			if (tile) {
+				for (var direction = 0; direction < 4; direction++) {
+					var vector = world.getVector(direction);
+					var cell   = { x: x + vector.x, y: y + vector.y };
+
+					var other  = grid.cellContent(cell);
+					if (!other && grid.withinBounds(cell)) {
+						return direction;
+					}
+				}
+			}
+		}
+	}
+
+	return -1;
+}
+
 // Gets the best possible move.
 AIManager.prototype.getMove = function () {
 	var world = this.world;
 
 	var score = 0;
-	var dir = Math.floor((Math.random() * 3));;
+	var dir = this.getDefaultMove();
 
 	for (var x = 0; x < world.size; x++) {
 		for (var y = 0; y < world.size; y++) {
