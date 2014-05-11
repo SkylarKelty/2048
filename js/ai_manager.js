@@ -1,5 +1,12 @@
 function AIManager(GameManager) {
 	this.world = GameManager;
+	this.lookahead = Math.floor(Math.random() * 3);
+
+	var a1weight = Math.random();
+	this.weights = {
+		"a1": a1weight,
+		"a2": 1 - a1weight
+	}
 }
 
 // Clones a grid's tiles into a simple cell array.
@@ -94,12 +101,11 @@ AIManager.prototype.getMove = function (grid, lookahead) {
 
 	var possibles = this.getPossibleMoves(grid);
 
-	var algorithm = Math.floor(Math.random() * 100);
-	var a1weight = 20;
+	var algorithm = Math.random();
 
 	// Algorithm 1 - returns the move that will merge the
 	// highest two tiles.
-	if (algorithm < a1weight) {
+	if (algorithm < this.weights.a1) {
 		for (var x = 0; x < world.size; x++) {
 			for (var y = 0; y < world.size; y++) {
 				var tile = grid.cellContent({ x: x, y: y });
@@ -125,7 +131,7 @@ AIManager.prototype.getMove = function (grid, lookahead) {
 
 	// Algorithm 2 - returns the move that will produce
 	// the highest scoring world.
-	if (algorithm >= a1weight) {
+	if (algorithm >= this.weights.a2) {
 		for (var direction = 0; direction < 4; direction++) {
 			if (possibles[direction]) {
 				var possible = this.scoreMove(world.grid, direction);
@@ -165,8 +171,7 @@ AIManager.prototype.tick = function () {
 	var self = this;
 
 	// Get the highest scoring move.
-	var lookahead = Math.floor(Math.random() * 3);
-	var move = this.getMove(this.world.grid, lookahead);
+	var move = this.getMove(this.world.grid, this.lookahead);
 	var direction = move.direction;
 
 	// Perform the move or end the game.

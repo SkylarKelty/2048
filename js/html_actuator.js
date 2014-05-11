@@ -3,6 +3,9 @@ function HTMLActuator() {
   this.scoreContainer   = document.querySelector(".score-container");
   this.bestContainer    = document.querySelector(".best-container");
   this.messageContainer = document.querySelector(".game-message");
+  this.a1Container   = document.querySelector(".algorithm-a-container");
+  this.a2Container    = document.querySelector(".algorithm-b-container");
+  this.lookaheadContainer = document.querySelector(".lookahead-container");
 
   this.score = 0;
 }
@@ -23,6 +26,9 @@ HTMLActuator.prototype.actuate = function (grid, metadata) {
 
     self.updateScore(metadata.score);
     self.updateBestScore(metadata.bestScore);
+    self.a1Container.textContent = metadata.ai.weights.a1.toFixed(2);
+    self.a2Container.textContent = metadata.ai.weights.a2.toFixed(2);
+    self.lookaheadContainer.textContent = metadata.ai.lookahead;
 
     if (metadata.terminated) {
       if (metadata.over) {
