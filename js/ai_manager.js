@@ -2,18 +2,61 @@ function AIManager(GameManager) {
 	this.world = GameManager;
 }
 
-// Called when the game has begun.
-AIManager.prototype.onStart = function () {
-	this.tick();
+// Gets the best possible move.
+AIManager.prototype.getMove = function () {
+	var world = this.world;
+
+	var score = 0;
+	var dir = Math.floor((Math.random() * 3));;
+
+	for (var x = 0; x < world.size; x++) {
+		for (var y = 0; y < world.size; y++) {
+			var tile = world.grid.cellContent({ x: x, y: y });
+
+			if (tile) {
+				for (var direction = 0; direction < 4; direction++) {
+					var vector = world.getVector(direction);
+					var cell   = { x: x + vector.x, y: y + vector.y };
+
+					var other  = world.grid.cellContent(cell);
+
+					if (other && other.value === tile.value) {
+						if (tile.value > score) {
+							score = tile;
+							dir = direction;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return dir;
 }
 
 // Called every 1 second after the game has begun.
 AIManager.prototype.tick = function () {
-	// Get a list of possible moves.
-	var moves = this.getMoves();
+	var self = this;
+
+	// Get the highest scoring move.
+	var direction = this.getMove();
+
+	// Perform the move or end the game.
+	if (direction == -1) {
+		return;
+	}
+
+	this.world.move(direction);
 
 	// Tick again in one second if the game isnt over yet.
 	if (!this.world.isGameTerminated()) {
-		window.setTimeout(this.tick, 1000);
+		window.setTimeout(function() {
+			self.tick();
+		}, 200);
 	}
+}
+
+// Called when the game has begun.
+AIManager.prototype.onStart = function () {
+	this.tick();
 }
