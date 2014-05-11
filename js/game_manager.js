@@ -100,6 +100,10 @@ GameManager.prototype.actuate = function () {
     terminated: this.isGameTerminated()
   });
 
+  if (this.over) {
+    // Start the AI Manager
+    this.ai.onEnd();
+  }
 };
 
 // Represent the current game as an object

@@ -188,3 +188,8 @@ AIManager.prototype.tick = function () {
 AIManager.prototype.onStart = function () {
 	this.tick();
 }
+
+// Learns after each game.
+AIManager.prototype.onEnd = function () {
+	// TODO
+}

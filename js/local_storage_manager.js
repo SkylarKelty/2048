@@ -61,3 +61,16 @@ LocalStorageManager.prototype.setGameState = function (gameState) {
 LocalStorageManager.prototype.clearGameState = function () {
   this.storage.removeItem(this.gameStateKey);
 };
+
+// General getters/setters
+LocalStorageManager.prototype.get = function (key) {
+  return this.storage.getItem(key) || 0;
+};
+
+LocalStorageManager.prototype.set = function (key, value) {
+  this.storage.setItem(key, value);
+};
+
+LocalStorageManager.prototype.clear = function (key) {
+  this.storage.removeItem(key);
+};
