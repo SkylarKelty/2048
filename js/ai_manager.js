@@ -2,6 +2,48 @@ function AIManager(GameManager) {
 	this.world = GameManager;
 }
 
+// Clones a grid's tiles into a simple cell array.
+AIManager.prototype.simpleGridClone = function (grid) {
+	var cells = [];
+	for (var x = 0; x < grid.size; x++) {
+		var row = cells[x] = [];
+		for (var y = 0; y < grid.size; y++) {
+			var tile = grid.cells[x][y];
+			if (tile) {
+				tile = tile.value;
+			}
+			row[y] = tile;
+		}
+	}
+}
+
+// Performs a fake movement on a grid.
+AIManager.prototype.performMove = function (grid, direction) {
+	var cells = this.simpleGridClone(grid);
+	var newGrid = new Grid(grid.size, cells);
+	var move = this.world.performMove(newGrid, direction);
+	return {
+		"result": move,
+		"grid": newGrid
+	};
+}
+
+// Grabs the score for a grid, with the given
+// movement vector implemented.
+AIManager.prototype.scoreMove = function (grid, direction) {
+	var move = this.performMove(grid, direction);
+	return move.result.score;
+}
+
+// Looks ahead, and grabs the highest score for
+// any valid move, if the current move were to
+// affect the grid.
+AIManager.prototype.lookAhead = function (grid, direction) {
+	var world = this.performMove(grid, direction);
+	var move = this.getMove(world.grid);
+	return move.score;
+}
+
 // Gets any possible move.
 AIManager.prototype.getDefaultMove = function () {
 	var self = this;
@@ -29,7 +71,7 @@ AIManager.prototype.getDefaultMove = function () {
 }
 
 // Gets the best possible move.
-AIManager.prototype.getMove = function () {
+AIManager.prototype.getMove = function (grid) {
 	var world = this.world;
 
 	var score = 0;
@@ -37,18 +79,18 @@ AIManager.prototype.getMove = function () {
 
 	for (var x = 0; x < world.size; x++) {
 		for (var y = 0; y < world.size; y++) {
-			var tile = world.grid.cellContent({ x: x, y: y });
+			var tile = grid.cellContent({ x: x, y: y });
 
 			if (tile) {
 				for (var direction = 0; direction < 4; direction++) {
 					var vector = world.getVector(direction);
 					var cell   = { x: x + vector.x, y: y + vector.y };
 
-					var other  = world.grid.cellContent(cell);
+					var other  = grid.cellContent(cell);
 
 					if (other && other.value === tile.value) {
-						if (tile.value > score) {
-							score = tile;
+						if (tile.value * 2 > score) {
+							score = tile * 2;
 							dir = direction;
 						}
 					}
@@ -57,7 +99,10 @@ AIManager.prototype.getMove = function () {
 		}
 	}
 
-	return dir;
+	return {
+		"direction": dir,
+		"score": score
+	};
 }
 
 // Called every 1 second after the game has begun.
@@ -65,7 +110,8 @@ AIManager.prototype.tick = function () {
 	var self = this;
 
 	// Get the highest scoring move.
-	var direction = this.getMove();
+	var move = this.getMove(this.world.grid);
+	var direction = move.direction;
 
 	// Perform the move or end the game.
 	if (direction == -1) {
