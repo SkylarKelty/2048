@@ -94,41 +94,46 @@ AIManager.prototype.getMove = function (grid, lookahead) {
 
 	var possibles = this.getPossibleMoves(grid);
 
+	var algorithm = Math.floor(Math.random() * 100);
+	var a1weight = 20;
+
 	// Algorithm 1 - returns the move that will merge the
 	// highest two tiles.
-	/*
-	for (var x = 0; x < world.size; x++) {
-		for (var y = 0; y < world.size; y++) {
-			var tile = grid.cellContent({ x: x, y: y });
+	if (algorithm < a1weight) {
+		for (var x = 0; x < world.size; x++) {
+			for (var y = 0; y < world.size; y++) {
+				var tile = grid.cellContent({ x: x, y: y });
 
-			if (tile) {
-				for (var direction = 0; direction < 4; direction++) {
-					var vector = world.getVector(direction);
-					var cell   = { x: x + vector.x, y: y + vector.y };
+				if (tile) {
+					for (var direction = 0; direction < 4; direction++) {
+						var vector = world.getVector(direction);
+						var cell   = { x: x + vector.x, y: y + vector.y };
 
-					var other  = grid.cellContent(cell);
+						var other  = grid.cellContent(cell);
 
-					if (other && other.value === tile.value) {
-						if (tile.value * 2 > score) {
-							score = tile * 2;
-							dir = direction;
+						if (other && other.value === tile.value) {
+							if (tile.value * 2 > score) {
+								score = tile * 2;
+								dir = direction;
+							}
 						}
 					}
 				}
 			}
 		}
 	}
-	*/
 
 	// Algorithm 2 - returns the move that will produce
 	// the highest scoring world.
-	for (var direction = 0; direction < 4; direction++) {
-		if (possibles[direction]) {
-			var possible = this.scoreMove(world.grid, direction);
+	if (algorithm >= a1weight) {
+		for (var direction = 0; direction < 4; direction++) {
+			if (possibles[direction]) {
+				var possible = this.scoreMove(world.grid, direction);
 
-			if (possible >= score) {
-				score = possible;
-				dir = direction;
+				if (possible >= score) {
+					score = possible;
+					dir = direction;
+				}
 			}
 		}
 	}
@@ -160,7 +165,8 @@ AIManager.prototype.tick = function () {
 	var self = this;
 
 	// Get the highest scoring move.
-	var move = this.getMove(this.world.grid, 2);
+	var lookahead = Math.floor(Math.random() * 3);
+	var move = this.getMove(this.world.grid, lookahead);
 	var direction = move.direction;
 
 	// Perform the move or end the game.
