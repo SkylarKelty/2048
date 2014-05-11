@@ -16,7 +16,7 @@ AIManager.prototype.reset = function () {
 
 // Randomise weights.
 AIManager.prototype.mixWeights = function () {
-	this.lookahead = Math.floor(Math.random() * 3);
+	this.lookahead = Math.floor(Math.random() * 4);
 
 	var a1weight = Math.random();
 	this.weights = {
@@ -28,11 +28,13 @@ AIManager.prototype.mixWeights = function () {
 // Serialize weights.
 AIManager.prototype.serialize = function () {
 	var self = this;
+	var score = self.world.score;
+
 	return JSON.stringify({
 		"count": 1,
 		"lookahead": self.lookahead,
 		"weights": self.weights,
-		"score": self.world.score
+		"score": score
 	});
 }
 
@@ -51,7 +53,7 @@ AIManager.prototype.learn = function () {
 	// Right, first we want to see what the score was
 	// the last time we used these weights.
 	var found = false;
-	var game = self.serialize();
+	var game;
 	for (var i = 0; i < brain.length; i++) {
 		game = brain[i];
 		if (game && game.lookahead == self.lookahead && game.weights.a1 == self.weights.a1
@@ -67,17 +69,27 @@ AIManager.prototype.learn = function () {
 
 	// Add to brain if we didnt find it.
 	if (!found) {
-		brain.append(game);
+		game = self.serialize();
+		brain.push(game);
 	}
 
 	// If we have tried these weights more than 10 times,
 	// produce a random variation.
 	if (game.count >= 10) {
+		if (brain.length > 10) {
+			// TODO - mix weights based on the best
+			// game from the previous 10 sets.
+			// This is how a GA works - improve the
+			// best ones.
+			// But do slightly bias this so we still *try*
+			// some variations of the previous weights.
+		}
 		self.mixWeights();
 	}
 
 	// Save the brain.
 	storage.set('aibrain', JSON.stringify(brain));
+	console.log(brain);
 }
 
 // Clones a grid's tiles into a simple cell array.
