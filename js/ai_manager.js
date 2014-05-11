@@ -1,5 +1,24 @@
 function AIManager(GameManager) {
 	this.world = GameManager;
+	this.ticker = 0;
+
+	this.mixWeights();
+}
+
+// Reset state.
+AIManager.prototype.reset = function () {
+	// Reset the ticker.
+	if (this.ticker) {
+		window.clearTimeout(this.ticker);
+		this.ticker = 0;
+	}
+
+	// Reset the weights.
+	this.mixWeights();
+}
+
+// Randomise weights.
+AIManager.prototype.mixWeights = function () {
 	this.lookahead = Math.floor(Math.random() * 3);
 
 	var a1weight = Math.random();
@@ -168,6 +187,7 @@ AIManager.prototype.getMove = function (grid, lookahead) {
 
 // Called every 1 second after the game has begun.
 AIManager.prototype.tick = function () {
+	console.log("TICK");
 	var self = this;
 
 	// Get the highest scoring move.
@@ -183,18 +203,26 @@ AIManager.prototype.tick = function () {
 
 	// Tick again in one second if the game isnt over yet.
 	if (!this.world.isGameTerminated()) {
-		window.setTimeout(function() {
+		this.ticker = window.setTimeout(function() {
 			self.tick();
-		}, 200);
+		}, 400);
 	}
 }
 
 // Called when the game has begun.
 AIManager.prototype.onStart = function () {
+	console.log("START");
+	this.reset();
 	this.tick();
 }
 
 // Learns after each game.
-AIManager.prototype.onEnd = function () {
-	// TODO
+AIManager.prototype.onEnd = function (manager) {
+	console.log("END");
+	this.reset();
+
+	this.world = manager;
+	window.setTimeout(function() {
+		manager.restart();
+	}, 1000);
 }

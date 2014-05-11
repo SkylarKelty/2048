@@ -16,6 +16,7 @@ function GameManager(size, InputManager, Actuator, StorageManager) {
 
 // Restart the game
 GameManager.prototype.restart = function () {
+  this.ai.reset();
   this.storageManager.clearGameState();
   this.actuator.continueGame(); // Clear the game won/lost message
   this.setup();
@@ -81,6 +82,7 @@ GameManager.prototype.addRandomTile = function () {
 
 // Sends the updated grid to the actuator
 GameManager.prototype.actuate = function () {
+  var self = this;
   if (this.storageManager.getBestScore() < this.score) {
     this.storageManager.setBestScore(this.score);
   }
@@ -101,9 +103,9 @@ GameManager.prototype.actuate = function () {
     ai:         this.ai
   });
 
-  if (this.over) {
+  if (self.over) {
     // Start the AI Manager
-    this.ai.onEnd();
+    self.ai.onEnd(self);
   }
 };
 
