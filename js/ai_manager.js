@@ -44,11 +44,12 @@ AIManager.prototype.lookAhead = function (grid, direction) {
 	return move.score;
 }
 
-// Gets any possible move.
-AIManager.prototype.getDefaultMove = function () {
+// Gets any direction we can move.
+AIManager.prototype.getPossibleMoves = function () {
 	var self = this;
 	var world = this.world;
 	var grid = this.world.grid;
+	var moves = [0, 0, 0, 0];
 
 	for (var x = 0; x < grid.size; x++) {
 		for (var y = 0; y < grid.size; y++) {
@@ -59,14 +60,25 @@ AIManager.prototype.getDefaultMove = function () {
 					var cell   = { x: x + vector.x, y: y + vector.y };
 
 					var other  = grid.cellContent(cell);
-					if (!other && grid.withinBounds(cell)) {
-						return direction;
+					if ((!other && grid.withinBounds(cell)) || (other && other.value == tile.value)) {
+						moves[direction] = 1;
 					}
 				}
 			}
 		}
 	}
 
+	return moves;
+}
+
+// Gets any possible move.
+AIManager.prototype.getDefaultMove = function () {
+	var moves = this.getPossibleMoves();console.log(moves);
+	for (var direction = 0; direction < 4; direction++) {
+		if (moves[direction]) {
+			return direction;
+		}
+	}
 	return -1;
 }
 
@@ -77,6 +89,9 @@ AIManager.prototype.getMove = function (grid) {
 	var score = 0;
 	var dir = this.getDefaultMove();
 
+	// Algorithm 1 - returns the move that will merge the
+	// highest two tiles.
+	/*
 	for (var x = 0; x < world.size; x++) {
 		for (var y = 0; y < world.size; y++) {
 			var tile = grid.cellContent({ x: x, y: y });
@@ -95,6 +110,21 @@ AIManager.prototype.getMove = function (grid) {
 						}
 					}
 				}
+			}
+		}
+	}
+	*/
+
+	// Algorithm 2 - returns the move that will produce
+	// the highest scoring world.
+	var possibles = this.getPossibleMoves();
+	for (var direction = 0; direction < 4; direction++) {
+		if (possibles[direction]) {
+			var possible = this.scoreMove(world.grid, direction);
+			console.log(direction + " " + possible + " " + score);
+			if (possible >= score) {
+				score = possible;
+				dir = direction;
 			}
 		}
 	}
