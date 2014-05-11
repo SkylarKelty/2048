@@ -38,9 +38,9 @@ AIManager.prototype.scoreMove = function (grid, direction) {
 // Looks ahead, and grabs the highest score for
 // any valid move, if the current move were to
 // affect the grid.
-AIManager.prototype.lookAhead = function (grid, direction) {
+AIManager.prototype.lookAhead = function (grid, direction, lookahead) {
 	var world = this.performMove(grid, direction);
-	var move = this.getMove(world.grid, 0);
+	var move = this.getMove(world.grid, 0, lookahead);
 	return {
 		"grid": world.grid,
 		"score": move.score
@@ -137,10 +137,10 @@ AIManager.prototype.getMove = function (grid, lookahead) {
 	// the highest scoring round after the next {lookahead}
 	// rounds.
 	if (lookahead > 0) {
-		var nextScore = score;
+		var nextScore = 0;
 		for (var direction = 0; direction < 4; direction++) {
 			if (possibles[direction]) {
-				var lookaheadMove = self.lookAhead(grid, direction);
+				var lookaheadMove = self.lookAhead(grid, direction, lookahead - 1);
 				if (lookaheadMove.score > nextScore) {
 					dir = direction;
 					nextScore = lookaheadMove.score;
@@ -160,7 +160,7 @@ AIManager.prototype.tick = function () {
 	var self = this;
 
 	// Get the highest scoring move.
-	var move = this.getMove(this.world.grid, 1);
+	var move = this.getMove(this.world.grid, 2);
 	var direction = move.direction;
 
 	// Perform the move or end the game.
